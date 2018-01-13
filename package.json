@@ -1,0 +1,22 @@
+{
+  "name": "gulp-build",
+  "version": "1.0.0",
+  "description": "Showcase a Gulp build with dev pipeline and prod exports",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/PokerEdge/gulp-build.git"
+  },
+  "keywords": [
+    "Gulp"
+  ],
+  "author": "Reid Young",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/PokerEdge/gulp-build/issues"
+  },
+  "homepage": "https://github.com/PokerEdge/gulp-build#readme"
+}

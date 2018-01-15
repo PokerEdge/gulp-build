@@ -8,7 +8,7 @@ var gulp = require('gulp'),
         maps = require('gulp-sourcemaps'),
          del = require('del'),
       useref = require('gulp-useref'),
-         Iff = require('gulp-if'),
+      gulpif = require('gulp-if'),
    minifyCss = require('gulp-clean-css'),
     imageMin = require('gulp-imagemin'),
         pump = require('pump'),
@@ -76,17 +76,6 @@ gulp.task('styles', function(){
     pumpCb
   );
 });
-// gulp.task('styles', function () {
-//   return gulp.src('./sass/**/*.scss')
-//     .pipe(sass.sync().on('error', sass.logError))
-//     .pipe(gulp.dest(options.dist + '/styles'));
-// });
-
-
-
-  // 'css/global.css' is the output compilation of sass files converted to CSS
-  // 'global.scss' contains parent imports of all project sass files
-
 
 // As a developer, I should be able to run the gulp images command at the
 // command line to optimize the size of the project’s JPEG and PNG (GIF AND SVG)
@@ -128,20 +117,52 @@ gulp.task('clean', function(){
   del(options.dist);
 });
 
+
+//Watch task has to be a function in Gulp 4+
+function watchFiles() {
+  gulp.watch(options.src + '/sass/**/*.scss', ['styles']);
+  gulp.watch(options.src + '/sass/**/*.sass', ['styles']);
+  // gulp.watch(options.src + '/*.html').on('change', browserSync.reload);
+}
+export { watchFiles as watch };
+
+
+// gulp.task('watchFiles', function(){
+//   gulp.watch(options.src + '/sass/**/*.scss', ['styles']);
+//   gulp.watch(options.src + '/sass/**/*.sass', ['styles']);
+//   // gulp.watch(options.src + '/*.html').on('change', browserSync.reload);
+// });
+
+gulp.task('html', function () {
+  pump([
+    gulp.src(options.src + '/*.html'),
+        useref(),
+        gulpif('*.js', uglify()),
+        gulpif('*.css', minifyCss()),
+        gulp.dest(options.dist)
+      ],
+      pumpCb
+    );
+});
+
 // As a developer, I should be able to run the gulp build command at the
 // command line to run the clean, scripts, styles, and images tasks with
 // confidence that the clean task completes before the other commands.
 
-gulp.task('build', ['clean'], function(){ //missing 'clean' task
-  gulp.start(['scripts', 'styles', 'images'/*, 'icons' */]);
-});
-
-gulp.task('default', ['watchFiles'], function(){
-  gulp.start('build');
+gulp.task('build', function(){
+  //Serialize so that html is after the other tasks
+  gulp.series('clean',
+    gulp.parallel(['scripts', 'styles', 'images'/*, 'icons' */]),
+  'html');
 });
 
 // As a developer, I should be able to run the gulp command at the command
 // line to run the build task and serve my project using a local web server.
+gulp.task('default',
+  gulp.series(['watchFiles','build'], function(){
+    //CB code
+  })
+);
 
 // As a developer, when I run the default gulp command, it should continuously
 // watch for changes to any .scss file in my project.

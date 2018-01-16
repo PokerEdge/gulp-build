@@ -12,7 +12,8 @@ var gulp = require('gulp'),
     minifyCss = require('gulp-clean-css'),
     imageMin = require('gulp-imagemin'),
     pump = require('pump'),
-    browserSync = require('browser-sync').create();
+    browserSync = require('browser-sync').create(),
+    connect = require('gulp-connect');
 
 var options = {
   src: 'src',
@@ -73,6 +74,7 @@ gulp.task('styles', function(){
     rename('all.min.css'),
     maps.write('./'),
     gulp.dest(options.dist + '/styles')
+    // browserSync.stream()
     ],
     pumpCb
   );
@@ -141,7 +143,7 @@ gulp.task('clean', function(){
 gulp.task('watchFiles', function(){
   gulp.watch(options.src + '/sass/**/*.scss', ['styles']);
   gulp.watch(options.src + '/sass/**/*.sass', ['styles']);
-  // gulp.watch(options.src + '/*.html').on('change', browserSync.reload);
+  gulp.watch(options.src + '/*.html').on('change', browserSync.reload);
 });
 
 gulp.task('html', function () {
@@ -167,9 +169,15 @@ gulp.task('build', ['clean'], function(){
     gulp.start('watchFiles');
 });
 
+gulp.task('webserver', function() {
+  connect.server();
+});
+
 // As a developer, I should be able to run the gulp command at the command
 // line to run the build task and serve my project using a local web server.
-gulp.task('default',['build']);
+gulp.task('default',['build'], function(){
+  gulp.start('webserver');
+});
 
 // As a developer, when I run the default gulp command, it should continuously
 // watch for changes to any .scss file in my project.

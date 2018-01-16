@@ -1,18 +1,18 @@
 'use strict';
 
 var gulp = require('gulp'),
-      uglify = require('gulp-uglify'),
-      concat = require('gulp-concat'),
-      rename = require('gulp-rename'),
-        sass = require('gulp-sass'),
-        maps = require('gulp-sourcemaps'),
-         del = require('del'),
-      useref = require('gulp-useref'),
-      gulpif = require('gulp-if'),
-   minifyCss = require('gulp-clean-css'),
+    uglify = require('gulp-uglify'),
+    concat = require('gulp-concat'),
+    rename = require('gulp-rename'),
+      sass = require('gulp-sass'),
+      maps = require('gulp-sourcemaps'),
+       del = require('del'),
+    useref = require('gulp-useref'),
+    gulpif = require('gulp-if'),
+    minifyCss = require('gulp-clean-css'),
     imageMin = require('gulp-imagemin'),
-        pump = require('pump'),
- browserSync = require('browser-sync').create();
+    pump = require('pump'),
+    browserSync = require('browser-sync').create();
 
 var options = {
   src: 'src',
@@ -62,20 +62,28 @@ gulp.task('scripts', function() {
 
 gulp.task('styles', function(){
   pump([
-    gulp.src(options.src + '/sass/global.scss'),
+    gulp.src(options.src + '/sass/*.scss'),
     sass(),
     maps.init(),
     // concat('all.css'),
     // gulp.dest(options.dist + '/styles'),
     // rename('all.min.css'),
-    concat('all.min.css'),
+    concat('global.css'),
     minifyCss(),
+    rename('all.min.css'),
     maps.write('./'),
     gulp.dest(options.dist + '/styles')
     ],
     pumpCb
   );
 });
+
+// gulp.task('devStyles', function(){
+//   gulp.src(options.src + '/sass/*.scss')
+//     .pipe(sass())
+//     .pipe(concat())
+//     .pipe(gulp.dest(options.src + '/css/global.css'))
+// });
 
 // As a developer, I should be able to run the gulp images command at the
 // command line to optimize the size of the project’s JPEG and PNG (GIF AND SVG)
@@ -113,25 +121,28 @@ gulp.task('icons', function(){
 
 // As a developer, I should be able to run the gulp clean command at the
 // command line to delete all of the files and folders in the dist folder.
+
 gulp.task('clean', function(){
-  del(options.dist);
+  return del(options.dist);
 });
 
+// export const clean = () => del(options.dist);
 
 //Watch task has to be a function in Gulp 4+
-function watchFiles() {
-  gulp.watch(options.src + '/sass/**/*.scss', ['styles']);
-  gulp.watch(options.src + '/sass/**/*.sass', ['styles']);
-  // gulp.watch(options.src + '/*.html').on('change', browserSync.reload);
-}
-export { watchFiles as watch };
 
-
-// gulp.task('watchFiles', function(){
+// function watchFiles() {
 //   gulp.watch(options.src + '/sass/**/*.scss', ['styles']);
 //   gulp.watch(options.src + '/sass/**/*.sass', ['styles']);
 //   // gulp.watch(options.src + '/*.html').on('change', browserSync.reload);
-// });
+// }
+// export { watchFiles as watch };
+
+
+gulp.task('watchFiles', function(){
+  gulp.watch(options.src + '/sass/**/*.scss', ['styles']);
+  gulp.watch(options.src + '/sass/**/*.sass', ['styles']);
+  // gulp.watch(options.src + '/*.html').on('change', browserSync.reload);
+});
 
 gulp.task('html', function () {
   pump([
@@ -149,20 +160,16 @@ gulp.task('html', function () {
 // command line to run the clean, scripts, styles, and images tasks with
 // confidence that the clean task completes before the other commands.
 
-gulp.task('build', function(){
+gulp.task('build', ['clean'], function(){
   //Serialize so that html is after the other tasks
-  gulp.series('clean',
-    gulp.parallel(['scripts', 'styles', 'images'/*, 'icons' */]),
-  'html');
+    gulp.start(['scripts', 'styles', 'images'/*, 'icons' */]);
+    gulp.start('html');
+    gulp.start('watchFiles');
 });
 
 // As a developer, I should be able to run the gulp command at the command
 // line to run the build task and serve my project using a local web server.
-gulp.task('default',
-  gulp.series(['watchFiles','build'], function(){
-    //CB code
-  })
-);
+gulp.task('default',['build']);
 
 // As a developer, when I run the default gulp command, it should continuously
 // watch for changes to any .scss file in my project.
